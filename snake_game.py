@@ -1,5 +1,5 @@
 import pygame
-import random
+from random import randint
 
 # Константы
 SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
@@ -41,13 +41,16 @@ class Apple(GameObject):
     def randomize_position(self):
         """Генерирует случайную позицию яблока в пределах игрового поля."""
         self.position = (
-            random.randint(0, (SCREEN_WIDTH // GRID_SIZE) - 1) * GRID_SIZE,
-            random.randint(0, (SCREEN_HEIGHT // GRID_SIZE) - 1) * GRID_SIZE
+            randint(0, (SCREEN_WIDTH // GRID_SIZE) - 1) * GRID_SIZE,
+            randint(0, (SCREEN_HEIGHT // GRID_SIZE) - 1) * GRID_SIZE
         )
 
     def draw(self, surface):
         """Отрисовывает яблоко на экране."""
-        pygame.draw.rect(surface, self.body_color, (*self.position, GRID_SIZE, GRID_SIZE))
+        pygame.draw.rect(
+            surface, self.body_color,
+            (*self.position, GRID_SIZE, GRID_SIZE)
+        )
 
 
 class Snake(GameObject):
@@ -92,6 +95,14 @@ class Snake(GameObject):
             self.positions[0][0] + self.direction[0],
             self.positions[0][1] + self.direction[1]
         )
+
+        if (
+            new_head[0] < 0 or new_head[0] >= SCREEN_WIDTH or
+            new_head[1] < 0 or new_head[1] >= SCREEN_HEIGHT
+        ):
+            self.reset()
+            return
+
         self.positions.insert(0, new_head)
 
         if len(self.positions) > self.length:
@@ -108,7 +119,10 @@ class Snake(GameObject):
     def draw(self, surface):
         """Отрисовывает змейку на экране."""
         for segment in self.positions:
-            pygame.draw.rect(surface, self.body_color, (*segment, GRID_SIZE, GRID_SIZE))
+            pygame.draw.rect(
+                surface, self.body_color,
+                (*segment, GRID_SIZE, GRID_SIZE)
+            )
 
 
 def handle_keys(snake):
@@ -150,16 +164,13 @@ def main():
         handle_keys(snake)
         snake.move()
 
-        # Проверка столкновения с яблоком
         if snake.get_head_position() == apple.position:
             snake.length += 1
             apple.randomize_position()
 
-        # Проверка столкновения змейки с собой
         if len(snake.positions) != len(set(snake.positions)):
             snake.reset()
 
-        # Отрисовка объектов
         snake.draw(screen)
         apple.draw(screen)
         pygame.display.update()
